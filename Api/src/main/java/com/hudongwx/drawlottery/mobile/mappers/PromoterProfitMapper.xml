@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.PromoterProfitMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.PromoterProfit">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="account_id" jdbcType="VARCHAR" property="accountId"/>
+        <result column="income" jdbcType="INTEGER" property="income"/>
+        <result column="operate_time" jdbcType="BIGINT" property="operateTime"/>
+    </resultMap>
+
+    <select id="selectPageProfitByAccountId" resultMap="BaseResultMap">
+        SELECT * FROM t_promoter_profit
+        WHERE account_id = #{accountId}
+        <if test="lastTime!=null and lastTime !=0 ">
+            and operate_time &lt; #{lastTime}
+        </if>
+        order by operate_time desc
+        limit #{pageLoadSize}
+    </select>
+
+    <select id="countUserIncome" resultType="java.math.BigDecimal">
+      SELECT sum(income) FROM t_promoter_profit WHERE account_id = #{accountId}
+    </select>
+</mapper>

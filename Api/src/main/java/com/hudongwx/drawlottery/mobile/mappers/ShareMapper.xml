@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.ShareMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.Share">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="user_account_id" jdbcType="BIGINT" property="userAccountId"/>
+        <result column="issue_date" jdbcType="BIGINT" property="issueDate"/>
+        <result column="commodity_id" jdbcType="BIGINT" property="commodityId"/>
+        <result column="particulars" jdbcType="VARCHAR" property="particulars"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+    </resultMap>
+
+    <select id="selectByUserAccountId" resultMap="BaseResultMap">
+        select * from t_share where user_account_id = #{accountId}
+        and state = 1
+        <if test="lastCommId !=null and lastCommId != 0">
+            and id &lt; (select id from t_share where commodity_id = #{lastCommId})
+        </if>
+        order by id desc limit #{pageLoadSize}
+    </select>
+
+    <select id="selectPassedCommShare" resultMap="BaseResultMap">
+    select * from t_share where commodity_id = #{commId} and state = 1
+  </select>
+
+    <select id="selectByIssueDate" resultMap="BaseResultMap">
+   select * from t_share where issue_date = #{issueDate}
+  </select>
+    <select id="selectAllWithPage" resultMap="BaseResultMap">
+        select * from t_share
+        WHERE state = 1
+        <if test="lastCommId !=null and lastCommId != 0">
+            AND id &lt; (SELECT id FROM t_share WHERE commodity_id = #{lastCommId})
+        </if>
+        order by id desc limit #{pageLoadSize}
+    </select>
+    <select id="selectDetailsById" resultMap="BaseResultMap">
+        SELECT * from draw_lottery.t_share where t_share.id = #{shareId}
+    </select>
+    <select id="selectByCommId" resultMap="BaseResultMap">
+        SELECT * from t_share where commodity_id= #{commId}
+    </select>
+    <insert id="insertByGeneratedKeys" parameterType="Share" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO t_share(user_account_id,issue_date,commodity_id,particulars)
+    values(#{userAccountId},#{issueDate},#{commodityId},#{particulars})
+  </insert>
+
+</mapper>

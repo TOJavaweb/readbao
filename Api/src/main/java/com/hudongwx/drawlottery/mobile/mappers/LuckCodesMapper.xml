@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.LuckCodesMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.LuckCodes">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="commodity_id" jdbcType="BIGINT" property="commodityId"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="luck_code_template_id" jdbcType="BIGINT" property="luckCodeTemplateId"/>
+        <result column="user_account_id" jdbcType="BIGINT" property="userAccountId"/>
+        <result column="orders_id" jdbcType="BIGINT" property="ordersId"/>
+        <result column="buy_date" jdbcType="BIGINT" property="buyDate"/>
+
+    </resultMap>
+
+    <!-- 插入下一期商品幸运码 -->
+    <insert id="insertLuckCode">
+        INSERT  INTO  t_luck_codes(luck_code_template_id,commodity_id) select id,#{commId} from t_luck_code_template limit 0,#{endIndex}
+    </insert>
+    <insert id="insertCodeList">
+        insert into draw_lottery.t_luck_codes (luck_code_template_id,commodity_id) VALUES
+        <foreach collection="list" item="code" separator=",">
+            (#{code.luckCodeTemplateId},#{code.commodityId})
+        </foreach>
+    </insert>
+
+    <select id="selectByUsable" resultMap="BaseResultMap">
+    select * from t_luck_codes where commodity_id = #{commodityId} and state = 0
+  </select>
+    <select id="selectLimit" resultMap="BaseResultMap">
+        select * from t_luck_codes where commodity_id = #{commodityId} and state = 0
+    limit 0,#{endNum}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+    SELECT * FROM t_luck_codes WHERE id = #{lcId}
+  </select>
+
+    <select id="selectBytemplate" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes WHERE luck_code_template_id = #{tempId} and
+        commodity_id = #{commodityId}
+    </select>
+
+    <select id="selectByCommodity" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes WHERE commodity_id = #{commodityId}
+    </select>
+
+
+    <update id="updateCodesState">
+        UPDATE t_luck_codes SET state = 1,user_account_id=#{accountId},
+        orders_id=#{ordersid},buy_date=#{buyDate}
+        WHERE commodity_id = #{commodityId} and state = 0 ORDER BY id DESC LIMIT #{buyNum};
+    </update>
+
+    <update id="updateNext">
+        UPDATE t_luck_codes SET state = 0,user_account_id=#{accountId},
+        orders_id=#{ordersid},buy_date=#{buyDate},commodity_id = #{nextCommId}
+        where commodity_id = #{commodityId}
+    </update>
+
+    <select id="selectCountByCommodity" resultType="java.lang.Long">
+        select distinct user_account_id from t_luck_codes WHERE commodity_id = #{commId}
+    </select>
+
+    <select id="selectDistinctGroupByCommId" resultType="java.lang.Long">
+        select distinct commodity_id from t_luck_codes WHERE user_account_id = #{accountId}
+    </select>
+
+    <select id="selectByOne" resultMap="BaseResultMap">
+        select * from t_luck_codes WHERE commodity_id = #{commodityId} AND luck_code_id = #{luckCoudId}
+    </select>
+    <select id="selectByUserAccountId" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes WHERE user_account_id = #{userAccountId} and
+        commodity_id = #{commodityId}
+    </select>
+    <select id="selectByAccAndCommId" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes WHERE user_account_id = #{userAccountId} and commodity_id =#{commId}
+    </select>
+
+    <select id="selectByBuyDateDesc" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes ORDER BY buy_date DESC limit 50;
+    </select>
+
+
+    <select id="selectByOrders" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes WHERE user_account_id = #{accountId}
+        and commodity_id = #{commodityId} and orders_id = #{ordersId} limit 0,12
+    </select>
+    <select id="selectUserCommLuckCode" resultType="java.lang.String">
+        SELECT tlct.luck_code
+        FROM t_luck_codes AS tlc
+        RIGHT JOIN t_luck_code_template AS tlct
+        ON tlc.luck_code_template_id = tlct.id
+        WHERE tlc.user_account_id = #{accountId}
+        and tlc.commodity_id = #{commId}
+        <if test="lastCode!=null and lastCode != 0">
+            and tlct.id &lt; (select id from t_luck_code_template where luck_code= #{lastCode})
+        </if>
+        order by tlct.id desc
+        limit #{pageLoadSize}
+    </select>
+
+    <select id="countUserCommAmount" resultType="java.lang.Integer">
+        SELECT COUNT(id) FROM t_luck_codes WHERE user_account_id =#{accountId} and commodity_id=#{commId}
+    </select>
+    <select id="selectAllUserPurchasedCommId" resultMap="BaseResultMap">
+        select a.buy_date,a.commodity_id from t_luck_codes a WHERE a.user_account_id=#{userAccountId} AND buy_date &lt; #{lastDate}
+        union
+        select b.buy_date,b.commodity_id from t_user_luck_codes_history b WHERE b.user_account_id=#{userAccountId} AND buy_date &lt; #{lastDate}
+        ORDER BY buy_date DESC LIMIT #{pageLoadSize}
+    </select>
+</mapper>

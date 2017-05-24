@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.UserCodesHistoryMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.UserCodesHistory">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="luck_code_template_id" jdbcType="BIGINT" property="luckCodeTemplateId"/>
+        <result column="commodity_id" jdbcType="BIGINT" property="commodityId"/>
+        <result column="user_account_id" jdbcType="BIGINT" property="userAccountId"/>
+        <result column="buy_date" jdbcType="BIGINT" property="buyDate"/>
+        <result column="orders_id" jdbcType="BIGINT" property="ordersId"/>
+    </resultMap>
+    <select id="selectByUserAccountId" resultMap="BaseResultMap">
+        SELECT *
+        FROM t_user_luck_codes_history
+        WHERE id = #{accountId}
+        ORDER BY id
+    </select>
+
+    <!--查询一组用-->
+    <select id="selectLimitCodeNum" resultType="java.lang.String">
+        SELECT temp.luck_code
+        FROM t_luck_code_template AS temp LEFT JOIN t_luck_codes AS lc ON temp.id = lc.luck_code_template_id
+        WHERE temp.id &gt; (SELECT id
+                            FROM t_luck_code_template
+                            WHERE luck_code LIKE #{lastCode})
+              AND lc.user_account_id = #{accountId}
+        ORDER BY temp.id
+        LIMIT #{pageLoadSize};
+    </select>
+
+    <select id="selectByOrders" resultMap="BaseResultMap">
+        SELECT * FROM t_luck_codes WHERE user_account_id = #{accountId}
+        and commodity_id = #{commodityId} and orders_id = #{ordersId} limit 0,12
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM t_user_luck_codes_history WHERE id = #{lcId}
+    </select>
+    <select id="countUserOrderCommAmount" resultType="java.lang.Integer">
+        SELECT COUNT(luck_code_template_id) FROM t_user_luck_codes_history
+        WHERE user_account_id = #{accountId} and commodity_id =#{commId}
+    </select>
+
+    <select id="selectUserCommLuckCode" resultType="java.lang.String">
+        SELECT tlct.luck_code
+        FROM t_user_luck_codes_history AS tulch
+        LEFT JOIN t_luck_code_template AS tlct
+        ON tulch.luck_code_template_id = tlct.id
+        WHERE tulch.user_account_id = #{accountId}
+        and tulch.commodity_id = #{commId}
+        <if test="lastCode!=0">
+            and tlct.id &lt; (select id from t_luck_code_template where luck_code = #{lastCode})
+        </if>
+        order by tlct.id desc
+        limit #{pageLoadSize}
+    </select>
+    <select id="countHistoryUserCommAmount" resultType="java.lang.Integer">
+      SELECT COUNT(id) FROM t_user_luck_codes_history WHERE user_account_id =#{accountId} and commodity_id=#{commId}
+    </select>
+
+    <insert id="insertHistory">
+
+        INSERT INTO t_user_luck_codes_history
+        (luck_code_template_id,commodity_id,user_account_id,buy_date,round_time) VALUES
+        <foreach collection="list" separator="," item="userLuck">
+            (#{userLuck.luck_code_template_id},#{userLuck.commodityId},#{userLuck.userAccountId},#{userLuck.buyDate},#{userLuck.roundTime})
+        </foreach>
+
+    </insert>
+
+    <insert id="insertCopy">
+        insert into t_user_luck_codes_history
+        (commodity_id,luck_code_template_id,user_account_id,orders_id,buy_date)
+        select commodity_id,luck_code_template_id,user_account_id,orders_id,buy_date from t_luck_codes
+          WHERE commodity_id = #{commodityId}
+    </insert>
+</mapper>

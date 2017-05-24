@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.CommoditysMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.Commoditys">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="commodity_id" jdbcType="BIGINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="commodity_desc" jdbcType="VARCHAR" property="commodityDesc"/>
+        <result column="commodity_type_id" jdbcType="BIGINT" property="commodityTypeId"/>
+        <result column="genre" jdbcType="INTEGER" property="genre"/>
+        <result column="buy_current_number" jdbcType="INTEGER" property="buyCurrentNumber"/>
+        <result column="buy_total_number" jdbcType="INTEGER" property="buyTotalNumber"/>
+        <result column="ground_time" jdbcType="BIGINT" property="groundTime"/>
+        <result column="state_id" jdbcType="INTEGER" property="stateId"/>
+        <result column="round_time" jdbcType="VARCHAR" property="roundTime"/>
+        <result column="cover_img_url" jdbcType="BIGINT" property="coverImgUrl"/>
+        <result column="auto_round" jdbcType="INTEGER" property="autoRound"/>
+        <result column="commodity_desc_url" jdbcType="VARCHAR" property="commodityDescUrl"/>
+        <result column="sell_out_time" jdbcType="BIGINT" property="sellOutTime"/>
+        <result column="undercarriage_time" jdbcType="BIGINT" property="undercarriageTime"/>
+        <result column="valid" jdbcType="INTEGER" property="valid"/>
+        <result column="minimum" jdbcType="INTEGER" property="minimum"/>
+        <result column="temp_id" jdbcType="BIGINT" property="tempId"/>
+        <result column="view_num" jdbcType="BIGINT" property="viewNum"/>
+        <result column="withdrawals_money" jdbcType="INTEGER" property="withdrawalsMoney"/>
+        <result column="exchange_money" jdbcType="INTEGER" property="exchangeMoney"/>
+        <result column="card_type" jdbcType="INTEGER" property="cardType"/>
+        <result column="card_num" jdbcType="INTEGER" property="cardNum"/>
+        <result column="card_money" jdbcType="INTEGER" property="cardMoney"/>
+
+    </resultMap>
+    <insert id="insertCommodity" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.hudongwx.drawlottery.mobile.entitys.Commoditys">
+        insert into t_commoditys (buy_current_number,round_time,view_num,temp_id,state_id) VALUES
+        (#{buyCurrentNumber},#{roundTime},#{viewNum},#{tempId},#{stateId})
+    </insert>
+
+    <select id="selectByKey" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity.commodity_id = #{commodityId}
+        UNION
+        <include refid="select_Sql_comm_history"></include>
+        where commhistory.commodity_id = #{commodityId}
+    </select>
+
+    <select id="selectCommNameListByCommId" resultType="java.lang.String">
+        SELECT template.name FROM t_commoditys as commodity
+        LEFT JOIN t_commodity_template as template ON
+        commodity.temp_id = template.id
+        WHERE commodity.commodity_id IN
+        <foreach collection="commIdList" open="(" separator="," close=")" item="id">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectCommNameByCommId" resultType="java.lang.String">
+        SELECT template.name FROM t_commoditys as commodity
+        LEFT JOIN t_commodity_template as template ON
+        commodity.temp_id = template.id
+        WHERE commodity.commodity_id = #{commIdList}
+    </select>
+
+
+    <!-- 根据商品类型ID分页查询商品 -->
+    <select id="selectPaging" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity_type_id = #{commodTypeId} limit #{startNum},#{endNum}
+    </select>
+
+    <!--分页测试-->
+    <select id="testPage" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity.state_id = #{state}
+        <choose>
+            <when test="option = 1 ">
+                <if test="lastCommId!=null and lastCommId!= 0">
+                    and commodity.view_num &lt;=
+                    (SELECT view_num FROM t_commoditys WHERE id = #{lastCommId} )
+                </if>
+                ORDER BY
+                commodity.view_num DESC
+            </when>
+
+            <when test="option = 2">
+                <if test="lastCommId!=null and lastCommId!=0">
+                    and commodity.buy_current_number-commodity.buy_last_number &gt;=
+                    (SELECT t_commoditys.buy_current_number-t_commoditys.buy_last_number FROM t_commoditys WHERE
+                    t_commoditys.id
+                    = #{lastCommId})
+                </if>
+                ORDER BY
+                commodity.buy_current_number-commodity.buy_last_number
+            </when>
+
+            <when test="option = 3">
+                <if test="lastCommId!=null and lastCommId!=0">
+                    and commodity.round_time &gt;=
+                    (SELECT t_commoditys.round_time FROM t_commoditys
+                    WHERE t_commoditys.id = (SELECT temp_id FROM t_commoditys WHERE id=#{lastCommId}) )
+                </if>
+                ORDER BY
+                ground_time DESC
+            </when>
+
+            <when test="option = 4">
+                <if test="lastCommId!=null and lastCommId!=0">
+                    and template.buy_total_number &lt;
+                    (SELECT buy_total_number FROM t_commodity_template
+                    WHERE id=(SELECT temp_id FROM t_commoditys WHERE id=#{lastCommId})
+                </if>
+                ORDER BY
+                template.buy_total_number DESC
+            </when>
+        </choose>
+        limit #{pageLoadSize}
+    </select>
+
+
+    <!-- 人气 -->
+    <select id="selectByTemp1" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity.state_id = 3
+        <if test="lastCommId!=null and lastCommId!=0">
+            and commodity.view_num &lt;
+            (SELECT view_num FROM t_commoditys WHERE commodity_id = #{lastCommId} )
+        </if>
+        ORDER BY
+        commodity.view_num DESC LIMIT #{maxInfoSize}
+    </select>
+
+    <!-- 最快 -->
+    <select id="selectByTemp2" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity.state_id = 3
+        <if test="lastCommId != null and lastCommId != 0">
+            and commodity.buy_current_number &lt;
+            (SELECT buy_current_number FROM t_commoditys WHERE commodity_id = #{lastCommId} )
+        </if>
+        ORDER BY
+        commodity.buy_current_number desc limit #{maxInfoSize}
+    </select>
+
+    <!-- 最新 -->
+    <select id="selectByTemp3" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity.state_id = 3
+        <if test="lastCommId!=null and lastCommId!=0">
+            and template.ground_time &lt;
+            (SELECT ground_time FROM t_commodity_template
+            WHERE id = (SELECT temp_id FROM t_commoditys WHERE commodity_id=#{lastCommId}) )
+        </if>
+        ORDER BY
+        template.ground_time DESC limit #{maxInfoSize}
+    </select>
+
+    <!-- 高价 -->
+    <select id="selectByTemp4" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE commodity.state_id = 3
+        <if test="lastCommId!=null and lastCommId!=0">
+            and template.buy_total_number &lt;
+            (SELECT buy_total_number FROM t_commodity_template
+            WHERE id=(SELECT temp_id FROM t_commoditys WHERE commodity_id=#{lastCommId}))
+        </if>
+        ORDER BY
+        template.buy_total_number DESC limit #{maxInfoSize}
+    </select>
+
+    <!-- 查询开奖中的商品 -->
+    <select id="selectOnLottery" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE template.buy_total_number = commodity.buy_current_number
+        AND commodity.state_id = 2 ORDER BY
+        commodity.sell_out_time DESC
+    </select>
+    <!--查询开奖中或已揭晓的商品-->
+    <select id="selectPageAnnounceComm" resultMap="BaseResultMap">
+        SELECT * FROM (
+        <include refid="selectSql"></include>
+        WHERE template.buy_total_number = commodity.buy_current_number
+        AND (commodity.state_id=1 OR commodity.state_id=2)
+        <if test="lastCommId!=null and lastCommId != 0">
+            AND commodity.sell_out_time &lt; (SELECT sell_out_time FROM t_commoditys WHERE commodity_id=#{lastCommId})
+        </if>
+        ORDER BY commodity.sell_out_time DESC limit #{pageLoadSize}
+        ) AS comm
+        UNION
+        (
+        <include refid="select_Sql_comm_history"></include>
+        WHERE template.buy_total_number = commhistory.buy_current_number
+        AND commhistory.state_id = 1
+        <if test="lastCommId!=null and lastCommId != 0">
+            AND commhistory.sell_out_time &lt; (SELECT sell_out_time FROM t_commoditys WHERE commodity_id=#{lastCommId})
+        </if>
+        ORDER BY
+        commhistory.sell_out_time DESC
+        )
+        limit #{pageLoadSize}
+
+    </select>
+
+    <!-- 查询高中奖率商品 -->
+    <select id="selectHeight" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE template.easyWinning = 1
+        AND commodity.state_id = 3
+        <if test="lastCommId !=null and lastCommId != 0">
+            and commodity.commodity_id &lt; #{lastCommId}
+        </if>
+        order by commodity.commodity_id desc
+        limit #{maxInfoSize}
+    </select>
+
+    <!-- 查询已开奖商品 -->
+    <select id="selectHasTheLotteryComm" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        <where>
+            commodity.state_id = 1
+            ORDER BY commodity.sell_out_time DESC
+        </where>
+    </select>
+
+    <select id="selectByGuess" resultMap="BaseResultMap">
+        <include refid="selectSql2"></include>
+        WHERE commodity.buy_current_number/template.buy_total_number>1/2
+        AND commodity.buy_current_number!=template.buy_total_number
+    </select>
+
+    <!-- 确定商品类型和商品名模糊查询 -->
+    <select id="selectByTypeAndName" resultMap="BaseResultMap">
+        <include refid="selectSql2"></include>
+        WHERE template.commodity_type_id = #{typeId}
+        and template.name like #{name}
+        and commodity.state_id = #{stateId}
+        and commodity.commodity_id &gt; #{lastCommId}
+        ORDER BY
+        commodity.commodity_id limit #{pageLoadSize}
+    </select>
+
+    <!-- 模糊查询 -->
+    <select id="selectByName" resultMap="BaseResultMap">
+        <include refid="selectSql2"></include>
+        WHERE template.name like #{name}
+        and commodity.state_id = #{stateId}
+        and commodity.commodity_id &gt; #{lastCommId}
+        order by commodity.commodity_id limit #{pageLoadSize}
+    </select>
+
+    <!-- 根据商品类型查询 -->
+    <select id="selectByType" resultMap="BaseResultMap">
+        <include refid="selectSql2"></include>
+        WHERE template.commodity_type_id = #{typeId}
+        and commodity.state_id = #{stateId}
+        and commodity.commodity_id &gt; #{lastCommId}
+        order by commodity.commodity_id limit #{pageLoadSize}
+    </select>
+    <select id="selectMaxRoundTime" resultType="java.lang.Long">
+        SELECT IFNULL(max(round_time * 1), 100000000)
+        FROM t_commoditys
+    </select>
+    <select id="selectNextRoundComm" resultMap="BaseResultMap">
+        SELECT
+            commodity_id,
+            round_time
+        FROM t_commoditys
+        WHERE temp_id = #{tempId}
+              AND state_id = #{stateId}
+              order by commodity_id
+    </select>
+
+    <update id="updateCommState">
+        UPDATE t_commoditys
+        SET state_id = #{stateId}
+        WHERE commodity_id = #{commId}
+    </update>
+
+
+    <select id="selectContent" resultType="java.lang.String">
+        select content from draw_lottery.t_commodity_template
+        INNER JOIN draw_lottery.t_commoditys on temp_id = id and commodity_id = #{commodityId}
+    </select>
+
+    <select id="selectUnLotteryComm" resultMap="BaseResultMap">
+        SELECT
+        commodity.commodity_id,
+        commodity.sell_out_time,
+        commodity.state_id
+        FROM t_commoditys
+        AS commodity LEFT JOIN t_commodity_template
+        AS template ON commodity.temp_id = template.id
+        WHERE state_id = 2
+    </select>
+    <select id="selectPurchaseRecord" resultMap="BaseResultMap">
+
+    </select>
+    <select id="selectDetails" resultType="com.hudongwx.drawlottery.mobile.entitys.Commoditys">
+        SELECT
+          commodity.commodity_id id,
+          temp.name,
+          commodity.round_time                                      AS roundTime,
+          temp.genre,
+          IFNULL(type.name,'未知类型')                                                AS typeName,
+          IFNULL(state.name, '未知状态')                        AS stateName,
+          temp.ground_time                                     AS groundTime,
+          commodity.undercarriage_time                              AS undercarriageTime,
+          commodity.view_num                                        AS viewNum,
+          temp.buy_total_number                                AS buyTotalNumber,
+          commodity.buy_current_number                              AS buyCurrentNumber,
+          temp.buy_total_number - commodity.buy_current_number AS buyNowNumber
+        FROM draw_lottery.t_commoditys AS commodity
+        LEFT JOIN draw_lottery.t_commodity_template as temp on commodity.temp_id = temp.id
+          LEFT JOIN draw_lottery.t_commodity_type AS type ON temp.commodity_type_id = type.id
+          LEFT JOIN draw_lottery.t_commodity_states AS state ON commodity.state_id = state.id
+        where commodity_id = #{id}
+    </select>
+    <select id="selectThreeCampaign" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        WHERE template.commodity_type_id = 14
+        AND commodity.state_id = 3
+        <if test="lastCommId !=null and lastCommId != 0 ">
+            AND commodity.commodity_id &lt; (select commodity_id from t_commoditys where commodity_id = #{lastCommId})
+        </if>
+        ORDER BY commodity.commodity_id DESC limit #{pageLoadSize}
+    </select>
+    <select id="selectOnSell" resultMap="BaseResultMap">
+        <include refid="selectSql"></include>
+        where commodity_id = (
+        select commodity_id from t_commoditys WHERE temp_id = (
+          select temp_id from t_commoditys where commodity_id = #{id}) and state_id = 3 LIMIT 1)
+        UNION
+        <include refid="select_Sql_comm_history"></include>
+        where commodity_id = (
+        select commodity_id from t_commoditys WHERE temp_id = (
+        select temp_id from t_commoditys where commodity_id = #{id}) and state_id = 3 LIMIT 1)
+    </select>
+
+    <!-- 商品通用查询语句 -->
+    <sql id="selectSql">
+        SELECT
+            commodity.commodity_id,
+            template.name,
+            template.withdrawals_money,
+            template.exchange_money,
+            commodity.temp_id,
+            template.card_type,
+            template.card_num,
+            template.valid,
+            commodity.undercarriage_time,
+            template.card_money,
+            commodity.view_num,
+            template.minimum,
+            template.genre,
+            template.commodity_desc,
+            template.commodity_type_id,
+            commodity.buy_current_number,
+            template.buy_total_number,
+            template.ground_time,
+            commodity.round_time,
+            template.cover_img_url,
+            template.auto_round,
+            template.commodity_desc_url,
+            commodity.sell_out_time,
+            commodity.state_id
+        FROM t_commoditys
+            AS commodity LEFT JOIN t_commodity_template
+            AS template ON commodity.temp_id = template.id
+    </sql>
+
+    <!-- 商品通用查询语句2（少字段） -->
+    <sql id="selectSql2">
+        SELECT
+            commodity.commodity_id,
+            template.name,
+            template.withdrawals_money,
+            template.exchange_money,
+            commodity.temp_id,
+            template.minimum,
+            commodity.view_num,
+            template.commodity_type_id,
+            commodity.buy_current_number,
+            template.buy_total_number,
+            commodity.round_time,
+            template.cover_img_url,
+            commodity.sell_out_time,
+            commodity.state_id
+        FROM t_commoditys AS commodity
+            LEFT JOIN t_commodity_template AS template ON
+                                                           commodity.temp_id = template.id
+    </sql>
+
+    <!-- 商品通用查询语句 -->
+    <sql id="select_Sql_comm_history">
+        SELECT
+            commhistory.commodity_id,
+            template.name,
+            template.withdrawals_money,
+            template.exchange_money,
+            commhistory.temp_id,
+            template.card_type,
+            template.card_num,
+            template.valid,
+            commhistory.undercarriage_time,
+            template.card_money,
+            commhistory.view_num,
+            template.minimum,
+            template.genre,
+            template.commodity_desc,
+            template.commodity_type_id,
+            commhistory.buy_current_number,
+            template.buy_total_number,
+            template.ground_time,
+            commhistory.round_time,
+            template.cover_img_url,
+            template.auto_round,
+            template.commodity_desc_url,
+            commhistory.sell_out_time,
+            commhistory.state_id
+        FROM t_commodity_history
+            AS commhistory LEFT JOIN t_commodity_template
+            AS template ON commhistory.temp_id = template.id
+    </sql>
+</mapper>

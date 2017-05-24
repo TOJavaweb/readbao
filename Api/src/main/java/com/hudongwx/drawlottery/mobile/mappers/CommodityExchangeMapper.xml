@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.CommodityExchangeMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.CommodityExchange">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="commodity_id" jdbcType="BIGINT" property="commodityId"/>
+        <result column="exchange_way_id" jdbcType="INTEGER" property="exchangeWayId"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+
+    </resultMap>
+    <select id="selectExcInfoByCommodityId" resultMap="BaseResultMap">
+        select way.name as ewName, way.id AS exchangeWayId,way.url AS ewUrl from t_commodity_exchange tce
+	    inner join t_commodity_template temp
+        inner join t_commoditys tc
+        inner join t_exchange_way way
+        on temp.id = tce.commodity_id and temp.id=tc.temp_id and way.id = tce.exchange_way_id
+        and tc.commodity_id = #{commodityId}
+    </select>
+
+    <select id="selectByIdList" resultMap="BaseResultMap">
+        select * from t_commodity_exchange
+        <where>
+            id IN
+            <foreach collection="idList" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+
+</mapper>

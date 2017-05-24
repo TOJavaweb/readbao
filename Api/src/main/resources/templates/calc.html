@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>计算详情</title>
+    <link rel="stylesheet" href="../static/css/framework7.material.min.css"
+          th:href="@{/css/framework7.material.min.css}">
+    <link rel="stylesheet" href="../static/css/framework7.material.colors.min.css"
+          th:href="@{/css/framework7.material.colors.min.css}">
+    <link rel="stylesheet" href="../static/css/my-app.css"
+          th:href="@{/css/my-app.css}"/>
+</head>
+<body>
+<div class="view">
+    <div class="view-main">
+        <div class="paga">
+            <div class="page">
+                <!--content start-->
+                <!--/*@thymesVar id="info" type="com.hudongwx.drawlottery.mobile.entitys.LotteryInfo"*/-->
+                <div class="page-content">
+                    <div class="card">
+                        <div class="card-content bg-red">
+                            <div class="card-content-inner color-white">计算公式：<p>（数值A÷数值B）取余数+100000001</p></div>
+                        </div>
+                    </div>
+                    <div class="list-block media-list" th:object="${info}">
+                        <ul>
+                            <li class="item-link item-content">
+                                <div class="item-inner">
+                                    <div class="item-title-row">
+                                        <div class="item-title">数值A</div>
+                                    </div>
+                                    <div>=截止该奖品开奖时间点前本站全部奖品的最后50次参与时间所代表数值之和</div>
+                                    <div class="item-text">=<span th:text="*{sumDate}?*{sumDate}:'暂无'"
+                                                                  style="color:red">123</span></div>
+
+                                    <div class="item-after" style="color: #007AFF;"><a id="toggle-btn"
+                                                                                       onclick="toggle()"
+                                                                                       href="javascript:void(0)">展开↓</a>
+                                    </div>
+
+                                    <div class="accordion-list" id="lottery_list" style="display: none;">
+                                        <div id="list_body">
+                                            <div class="row">
+                                                <div class="col-65">购买时间</div>
+                                                <div class="col-35">购买用户</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </li>
+                            <li class="item-link item-content">
+                                <div class="item-inner">
+                                    <div class="item-title-row">
+                                        <div class="item-title">数值B</div>
+                                    </div>
+                                    <div class="item-subtitle">=奖品所需人次</div>
+                                    <div class="item-text">=<span th:text="*{buyNum}?*{buyNum}:${buyTotalNumber}"
+                                                                  style="color: red;">20</span>
+                                    </div>
+                                </div>
+                                </a></li>
+                            <li class="item-link item-content">
+                                <div class="item-inner">
+                                    <div class="item-title-row">
+                                        <div class="item-title">计算结果</div>
+                                    </div>
+                                    <div class="item-text">幸运号码：<span style="color: red;"
+                                                                      th:text="*{lotteryId}?*{lotteryId}:'暂无相关信息'">50</span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script th:inline="javascript" th:object="${info}">
+    var lottery_info = /*[[*{lotteryInfo}?*{lotteryInfo}]]*/'[]';
+    window.onload = function () {
+        var dom = document.getElementById('list_body');
+        var array = JSON.parse(lottery_info);
+        if (array.length > 0) {
+            array.map(function (item) {
+                var para = document.createElement("div");
+                para.style.fontSize = '13px';
+                var node = document.createTextNode(item);
+                para.appendChild(node);
+                dom.appendChild(para);
+            });
+        } else {
+            var para = document.createElement("div");
+            var node = document.createTextNode('暂无数据');
+            para.appendChild(node);
+            dom.appendChild(para);
+        }
+    }
+    function toggle() {
+        var dom = document.getElementById("lottery_list");
+        var btn = document.getElementById("toggle-btn");
+        if (dom.style.display != 'none') {
+            dom.style.display = 'none';
+            btn.innerHTML = '展开↓';
+        } else {
+            dom.style.display = '';
+            btn.innerHTML = '收起↑';
+        }
+    }
+</script>
+</html>

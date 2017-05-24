@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.CardMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.Card">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="card_num" jdbcType="VARCHAR" property="cardNum"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="corporation" jdbcType="INTEGER" property="corporation"/>
+        <result column="money" jdbcType="INTEGER" property="money"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="commodity_id" jdbcType="BIGINT" property="commodityId"/>
+
+    </resultMap>
+
+    <select id="selectCardPassword" resultType="java.lang.String">
+        SELECT password FROM t_card WHERE card_num = #{cardNumber}
+    </select>
+
+    <update id="updateCardState" >
+        UPDATE t_card SET commodity_id = #{commodityId}
+        WHERE card_num = #{cardNumber}
+    </update>
+
+    <select id="selectByCommodityId" resultMap="BaseResultMap">
+        SELECT * FROM t_card WHERE commodity_id = #{commodityId}
+    </select>
+
+</mapper>

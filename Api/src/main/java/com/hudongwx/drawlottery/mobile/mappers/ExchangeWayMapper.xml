@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.ExchangeWayMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.ExchangeWay">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+    </resultMap>
+
+    <select id="selectByIdList" resultMap="BaseResultMap">
+        select * from t_exchange_way
+        <if test="idList !=null and idList.size() !=0">
+            WHERE id IN
+            <foreach collection="idList" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        select * from t_exchange_way WHERE id = #{ewId}
+    </select>
+</mapper>

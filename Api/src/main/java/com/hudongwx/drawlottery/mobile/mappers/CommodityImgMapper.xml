@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.CommodityImgMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.CommodityImg">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="add_time" jdbcType="BIGINT" property="addTime"/>
+        <result column="commodity_id" jdbcType="BIGINT" property="commodityId"/>
+
+    </resultMap>
+    <select id="selectByCommId" resultMap="BaseResultMap">
+        SELECT *
+        FROM t_commoditys_imags
+        WHERE commodity_id = #{commId}
+    </select>
+
+    <select id="selectImgUrlListByTempId" resultType="java.lang.String">
+        SELECT url
+        FROM t_commoditys_imags
+        WHERE commodity_id = #{tempId} and state = #{state}
+    </select>
+</mapper>

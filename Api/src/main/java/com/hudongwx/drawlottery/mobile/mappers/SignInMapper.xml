@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.SignInMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.SignIn">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_account_id" jdbcType="BIGINT" property="commdityId" />
+        <result column="sign_in_day" jdbcType="INTEGER" property="signInDay" />
+        <result column="new_sign_date" jdbcType="BIGINT" property="newSignInDate" />
+    </resultMap>
+
+    <select id="selectSignByAccountId" resultMap="BaseResultMap">
+        SELECT * FROM t_sign_in
+         WHERE user_account_id = #{accountId} ORDER BY new_sign_date DESC
+    </select>
+</mapper>

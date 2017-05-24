@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hudongwx.drawlottery.mobile.mappers.UserMapper">
+    <resultMap id="BaseResultMap" type="com.hudongwx.drawlottery.mobile.entitys.User">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="real_name" jdbcType="VARCHAR" property="realName"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="phone_number" jdbcType="VARCHAR" property="phoneNumber"/>
+        <result column="salt" jdbcType="VARCHAR" property="salt"/>
+        <result column="user_integral" jdbcType="INTEGER" property="userIntegral"/>
+        <result column="current_state" jdbcType="INTEGER" property="currentState"/>
+        <result column="header_url" jdbcType="INTEGER" property="headerUrl"/>
+        <result column="gold_number" jdbcType="INTEGER" property="goldNumber"/>
+        <result column="qq_number" jdbcType="VARCHAR" property="qqNumber"/>
+        <result column="qq_open_id" jdbcType="VARCHAR" property="qqOpenId"/>
+        <result column="weixin_open_id" jdbcType="VARCHAR" property="weixinOpenId"/>
+        <result column="promoter_id" jdbcType="BIGINT" property="promoterId"/>
+        <result column="promote_date" jdbcType="BIGINT" property="promoteDate"/>
+        <result column="balance" jdbcType="DECIMAL" property="balance"/>
+        <result column="lv" jdbcType="INTEGER" property="lv"/>
+        <result column="regist_date" jdbcType="BIGINT" property="registDate"/>
+    </resultMap>
+
+    <select id="selectByPhoneNumber" resultMap="BaseResultMap">
+        select * from t_users where phone_number = #{phone}
+    </select>
+
+    <select id="selectByWxOpenId" resultMap="BaseResultMap">
+        select account_id,salt,password from t_users where weixin_open_id = #{openId}
+    </select>
+
+    <select id="selectByQQOpenId" resultMap="BaseResultMap">
+        select account_id,salt,password from t_users where qq_open_id = #{openId}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM t_users WHERE account_id = #{accountId}
+    </select>
+
+    <select id="selectUserNicknameById" resultType="java.lang.String">
+        SELECT nickname FROM t_users WHERE account_id = #{accountId}
+    </select>
+    <select id="selectUserRegisterDate" resultType="java.lang.Long">
+        SELECT regist_date FROM t_users WHERE account_id=#{accountId}
+    </select>
+    <select id="countUsers" resultType="java.lang.Long">
+        SELECT COUNT (account_id) FROM t_users
+    </select>
+
+    <update id="updateUserPromteId">
+      UPDATE t_users SET promoter_id = #{promId},promote_date = #{promoteDate} where account_id = #{accountId}
+    </update>
+
+    <update id="updateUserQQ">
+        UPDATE t_users SET qq_number = #{qqNumber} where account_id = #{accountId}
+    </update>
+</mapper>
